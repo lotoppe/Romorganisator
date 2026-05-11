@@ -199,6 +199,7 @@
       background: var(--navy-mid); padding: 10px 16px;
       display: flex; align-items: center; justify-content: space-between;
       border-bottom: 1px solid rgba(201,168,64,.18); transition: background .3s;
+      position: relative;
     }
     .room-card.full .room-card-head { background: var(--green); }
 
@@ -206,6 +207,22 @@
     .room-card.full .room-label { color: #a7f3d0; }
     .room-tally { font-size: 11px; color: rgba(255,255,255,.45); letter-spacing: .5px; }
     .room-card.full .room-tally { color: #6ee7b7; }
+
+    .room-delete {
+      background: none; border: none; color: #ef9a9a; cursor: pointer;
+      font-size: 18px; line-height: 1; padding: 0 0 0 10px;
+      opacity: 0; transition: opacity .15s; flex-shrink: 0;
+    }
+    .room-card:hover .room-delete { opacity: 1; }
+    .room-delete:hover { color: #e53935; }
+
+    .guest-delete {
+      background: none; border: none; color: rgba(0,0,0,.25); cursor: pointer;
+      font-size: 16px; line-height: 1; padding: 0; margin-left: auto;
+      opacity: 0; transition: opacity .15s; flex-shrink: 0;
+    }
+    .guest-card:hover .guest-delete { opacity: 1; }
+    .guest-delete:hover { color: #e53935; }
 
     .room-beds { padding: 16px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; background: var(--cream); }
 
@@ -531,7 +548,9 @@ function renderSidebar() {
   }
   list.innerHTML = ua.map((n, i) => `
     <div class="guest-card" draggable="true" data-sidx="${i}" data-name="${esc(n)}">
-      <span class="drag-dots">⠿</span>${esc(n)}
+      <span class="drag-dots">⠿</span>
+      <span style="flex:1">${esc(n)}</span>
+      <button class="guest-delete" draggable="false" onclick="deleteGuest(${JSON.stringify(n)})" title="Fjern gjest">×</button>
     </div>`).join('');
 
   // Attach drag listeners
@@ -603,6 +622,7 @@ function renderRoom(room) {
       <div class="room-card-head">
         <span class="room-label">${esc(room.label)}</span>
         <span class="room-tally">${filled}/${room.capacity}${full ? '  ✓' : ''}</span>
+        <button class="room-delete" onclick="deleteRoom(${room.id})" title="Slett rom">×</button>
       </div>
       <div class="room-beds">${beds}</div>
     </div>`;
@@ -651,6 +671,17 @@ function handleBedDrop(roomId, bedIdx) {
 function removeBed(roomId, bedIdx) {
   const r = rooms.find(r => r.id === roomId);
   if (r) r.assignments[bedIdx] = null;
+  renderOrg();
+}
+
+function deleteRoom(roomId) {
+  rooms = rooms.filter(r => r.id !== roomId);
+  renderOrg();
+}
+
+function deleteGuest(name) {
+  guests = guests.filter(g => g !== name);
+  rooms.forEach(r => { r.assignments = r.assignments.map(a => a === name ? null : a); });
   renderOrg();
 }
 
