@@ -813,10 +813,13 @@ function importCSV(input) {
     rooms.forEach(r => { tc[r.capacity] = (tc[r.capacity] || 0) + 1; });
     roomTypes = Object.entries(tc).map(([b, c]) => ({ beds: +b, count: c }));
 
-    renderGuestTags();
-    renderRoomTypes();
-    alert(`Importert: ${guests.length} gjester · ${rooms.length} rom`);
     input.value = '';
+
+    // Gå direkte til organiseringsvisningen med importert plassering
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('orgScreen').style.display  = 'flex';
+    renderOrg();
+    initDnD();
   };
   reader.readAsText(file, 'UTF-8');
 }
