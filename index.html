@@ -409,6 +409,7 @@ let nextId  = 1;
 let roomTypes = []; // {beds,count}  — start screen only
 
 let drag = null; // {from:'sidebar'|'bed', name, roomId?, bedIdx?}
+let _ua  = [];   // current unassigned list, used by guest delete buttons
 
 // ══════════════════════════════════════════
 // HELPERS
@@ -546,29 +547,25 @@ function renderSidebar() {
     list.innerHTML = '<div class="sidebar-empty">Alle gjester er<br>plassert! 🎉</div>';
     return;
   }
+  _ua = ua; // store reference for onclick handlers
+
   list.innerHTML = ua.map((n, i) => `
     <div class="guest-card" draggable="true" data-sidx="${i}">
       <span class="drag-dots">⠿</span>
       <span style="flex:1">${esc(n)}</span>
-      <button class="guest-delete" draggable="false" title="Fjern gjest">×</button>
+      <button class="guest-delete" draggable="false" title="Fjern gjest" onclick="event.stopPropagation();deleteGuest(_ua[${i}])">×</button>
     </div>`).join('');
 
-  // Attach drag and delete listeners
+  // Attach drag listeners
   list.querySelectorAll('.guest-card').forEach(card => {
     const idx  = parseInt(card.dataset.sidx);
     const name = ua[idx];
-
     card.addEventListener('dragstart', e => {
       drag = { from: 'sidebar', name };
       e.dataTransfer.effectAllowed = 'move';
       setTimeout(() => card.classList.add('dragging'), 0);
     });
     card.addEventListener('dragend', () => card.classList.remove('dragging'));
-
-    card.querySelector('.guest-delete').addEventListener('click', e => {
-      e.stopPropagation();
-      deleteGuest(name);
-    });
   });
 }
 
