@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Romorganisering – Fjordslottet Romorganisering</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:       #0d1b2a;
+      --navy-light: #162333;
+      --navy-mid:   #1e2f42;
+      --gold:       #c9a840;
+      --gold-light: #e8d5a3;
+      --gold-dark:  #a0832e;
+      --cream:      #f8f4ec;
+      --cream-dark: #ede6d8;
+      --text-dark:  #1a1208;
+      --green:      #2d6a4f;
+      --green-lite: #52b788;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Raleway', sans-serif; background: var(--navy); color: var(--cream); min-height: 100vh; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--navy); }
+    ::-webkit-scrollbar-thumb { background: rgba(201,168,64,.35); border-radius: 3px; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 9px 20px; border: none; border-radius: 4px; cursor: pointer;
+      font-family: 'Raleway', sans-serif; font-weight: 600; font-size: 12px;
+      letter-spacing: 1.5px; text-transform: uppercase; transition: all .2s; white-space: nowrap;
+    }
+    .btn-gold { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); color: var(--navy); }
+    .btn-gold:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(201,168,64,.3); }
+    .btn-outline { background: transparent; color: var(--gold-light); border: 1px solid rgba(201,168,64,.5); }
+    .btn-outline:hover { background: rgba(201,168,64,.1); border-color: var(--gold); }
+    .btn-sm { padding: 5px 12px; font-size: 11px; }
+    .btn-danger { background: transparent; color: #ef9a9a; border: 1px solid rgba(239,154,154,.4); }
+    .btn-danger:hover { background: rgba(239,154,154,.1); }
+
+    /* ── INPUTS ── */
+    label.field-label {
+      display: block; font-size: 11px; font-weight: 600; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--gold-light); opacity: .75; margin-bottom: 7px;
+    }
+    input[type=text], input[type=number], textarea {
+      width: 100%; background: var(--navy-light); border: 1px solid rgba(201,168,64,.25);
+      border-radius: 4px; color: var(--cream); padding: 10px 14px;
+      font-family: 'Raleway', sans-serif; font-size: 14px; outline: none; transition: border-color .2s;
+    }
+    input[type=text]:focus, input[type=number]:focus, textarea:focus { border-color: var(--gold); }
+    input[type=number] { -moz-appearance: textfield; }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    textarea { resize: vertical; min-height: 90px; }
+
+    /* ═══════════════════════════════════════
+       START SCREEN
+    ═══════════════════════════════════════ */
+    #startScreen {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 48px 24px 40px; min-height: 100vh;
+    }
+    .start-header { text-align: center; margin-bottom: 44px; }
+    .ornament { display: block; font-size: 18px; color: var(--gold); letter-spacing: 18px; margin-bottom: 14px; }
+    .start-header h1 {
+      font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 52px);
+      font-weight: 700; color: var(--gold-light); letter-spacing: 2px;
+      text-shadow: 0 2px 12px rgba(0,0,0,.4);
+    }
+    .gold-rule {
+      width: 220px; height: 1px; margin: 18px auto;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+    }
+    .start-header p {
+      font-weight: 300; font-size: 14px; letter-spacing: 6px;
+      text-transform: uppercase; opacity: .7;
+    }
+
+    .start-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
+      width: 100%; max-width: 1060px; margin-bottom: 32px;
+    }
+    @media (max-width: 760px) { .start-grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--navy-mid); border: 1px solid rgba(201,168,64,.22);
+      border-radius: 8px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,.3);
+    }
+    .card h2 {
+      font-family: 'Playfair Display', serif; font-size: 22px; color: var(--gold-light);
+      margin-bottom: 22px; padding-bottom: 12px; border-bottom: 1px solid rgba(201,168,64,.18);
+    }
+    .gap { margin-top: 16px; }
+    .gap-lg { margin-top: 24px; }
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+      color: var(--gold-light); opacity: .45; margin: 18px 0;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(201,168,64,.18); }
+
+    .row-2 { display: flex; gap: 10px; align-items: flex-end; }
+    .row-2 > *:first-child { flex: 1; }
+
+    .room-type-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
+
+    .tag-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; max-height: 180px; overflow-y: auto; }
+    .guest-tag {
+      background: var(--navy-light); border: 1px solid rgba(201,168,64,.22);
+      border-radius: 20px; padding: 4px 10px 4px 14px; font-size: 12px; color: var(--cream);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .guest-tag button {
+      background: none; border: none; color: rgba(201,168,64,.4); cursor: pointer;
+      font-size: 15px; line-height: 1; padding: 0; transition: color .15s;
+    }
+    .guest-tag button:hover { color: #ef9a9a; }
+
+    .rt-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--navy-light); border: 1px solid rgba(201,168,64,.15);
+      border-radius: 4px; padding: 9px 14px; margin-top: 8px; font-size: 13px;
+    }
+    .rt-item .hl { color: var(--gold-light); font-weight: 600; }
+
+    .meta-text { font-size: 12px; color: var(--gold-light); opacity: .55; margin-top: 10px; }
+
+    .start-footer { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .btn-hero {
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      color: var(--navy); padding: 16px 52px; font-size: 15px; border: none;
+      border-radius: 4px; cursor: pointer; font-family: 'Playfair Display', serif;
+      font-weight: 600; letter-spacing: 2px; transition: all .25s;
+      box-shadow: 0 4px 20px rgba(201,168,64,.2);
+    }
+    .btn-hero:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(201,168,64,.4); }
+
+    /* ═══════════════════════════════════════
+       ORG SCREEN
+    ═══════════════════════════════════════ */
+    #orgScreen { display: none; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    .org-header {
+      background: var(--navy-mid); border-bottom: 1px solid rgba(201,168,64,.25);
+      padding: 11px 22px; display: flex; align-items: center;
+      justify-content: space-between; flex-shrink: 0; gap: 12px; flex-wrap: wrap;
+    }
+    .org-title { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--gold-light); letter-spacing: 1px; }
+    .org-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .org-body { display: flex; flex: 1; overflow: hidden; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 270px; flex-shrink: 0; background: var(--navy-mid);
+      border-right: 1px solid rgba(201,168,64,.18);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .sidebar-header { padding: 16px 18px 10px; border-bottom: 1px solid rgba(201,168,64,.15); flex-shrink: 0; }
+    .sidebar-header h3 { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--gold-light); }
+    .sidebar-meta { font-size: 11px; color: var(--gold-light); opacity: .5; margin-top: 4px; letter-spacing: .5px; }
+    .sidebar-list {
+      flex: 1; overflow-y: auto; padding: 10px 12px;
+      transition: background .15s;
+    }
+    .sidebar-list.drop-target { background: rgba(201,168,64,.07); }
+
+    .guest-card {
+      background: var(--cream-dark); border: 1px solid rgba(201,168,64,.3);
+      border-radius: 4px; padding: 9px 12px; margin-bottom: 6px;
+      cursor: grab; color: var(--text-dark); font-size: 13px; font-weight: 500;
+      display: flex; align-items: center; gap: 8px;
+      user-select: none; transition: all .15s;
+    }
+    .guest-card:hover { background: var(--cream); border-color: var(--gold); box-shadow: 0 2px 8px rgba(201,168,64,.2); }
+    .guest-card:active { cursor: grabbing; }
+    .guest-card.dragging { opacity: .4; }
+    .drag-dots { font-size: 11px; color: rgba(0,0,0,.25); flex-shrink: 0; }
+    .sidebar-empty { font-size: 12px; color: rgba(255,255,255,.3); text-align: center; margin-top: 28px; line-height: 1.7; }
+
+    /* Rooms area */
+    .rooms-area { flex: 1; overflow-y: auto; padding: 24px; background: var(--navy); }
+    .rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 22px; }
+
+    /* Room card */
+    .room-card {
+      background: var(--cream); border: 2px solid rgba(201,168,64,.35);
+      border-radius: 8px; overflow: hidden; transition: border-color .3s, box-shadow .3s;
+      box-shadow: 0 4px 16px rgba(0,0,0,.2);
+    }
+    .room-card.full { border-color: var(--green-lite); box-shadow: 0 4px 20px rgba(82,183,136,.25); }
+
+    .room-card-head {
+      background: var(--navy-mid); padding: 10px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(201,168,64,.18); transition: background .3s;
+    }
+    .room-card.full .room-card-head { background: var(--green); }
+
+    .room-label { font-family: 'Playfair Display', serif; font-size: 15px; color: var(--gold-light); }
+    .room-card.full .room-label { color: #a7f3d0; }
+    .room-tally { font-size: 11px; color: rgba(255,255,255,.45); letter-spacing: .5px; }
+    .room-card.full .room-tally { color: #6ee7b7; }
+
+    .room-beds { padding: 16px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; background: var(--cream); }
+
+    /* Bed */
+    .bed-slot { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+
+    .bed-wrap {
+      width: 68px; height: 92px; border-radius: 6px 6px 4px 4px;
+      border: 2px solid #8b6540; background: #f0e8d6;
+      display: flex; flex-direction: column; overflow: hidden;
+      cursor: default; transition: border-color .15s, background .15s;
+      position: relative;
+    }
+    .bed-wrap.droppable { cursor: copy; }
+    .bed-wrap.drop-over { border-color: var(--gold); background: #fffbe8; border-style: dashed; }
+    .bed-wrap.occupied { border-color: #4a7c59; background: #e6f4ed; cursor: grab; }
+    .bed-wrap.occupied:active { cursor: grabbing; }
+
+    .bed-head {
+      height: 22px; flex-shrink: 0;
+      background: linear-gradient(to bottom, #3d2010, #6b4228);
+      border-bottom: 2px solid #2a1508;
+      display: flex; align-items: center; justify-content: center; padding: 0 5px;
+    }
+    .bed-wrap.occupied .bed-head { background: linear-gradient(to bottom, #1a4731, #2d6a4f); border-bottom-color: #0f2e1e; }
+
+    .bed-pillow {
+      margin: 3px 5px 2px;
+      background: linear-gradient(to bottom right, #faf7f2, #ede6d8);
+      border: 1px solid #d4c4a8; border-radius: 2px; height: 11px; flex-shrink: 0;
+    }
+    .bed-wrap.occupied .bed-pillow { background: linear-gradient(to bottom right, #c8e8d4, #a8d4b8); border-color: #7fbf9a; }
+
+    .bed-mattress {
+      flex: 1; margin: 2px 4px 4px;
+      background: linear-gradient(to bottom, #e2d6c0, #d0c4a8);
+      border-radius: 2px; display: flex; align-items: center; justify-content: center;
+    }
+    .bed-wrap.occupied .bed-mattress { background: linear-gradient(to bottom, #b8dcc8, #98c4a8); }
+    .bed-empty-hint { font-size: 8px; color: rgba(0,0,0,.2); letter-spacing: 1px; text-transform: uppercase; }
+
+    .bed-name {
+      font-size: 10px; font-weight: 600; color: var(--text-dark); text-align: center;
+      max-width: 76px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      line-height: 1.3; min-height: 14px;
+    }
+    .bed-remove {
+      background: none; border: none; color: #ef9a9a; cursor: pointer;
+      font-size: 13px; padding: 0; opacity: 0; transition: opacity .15s; line-height: 1;
+    }
+    .bed-slot:hover .bed-remove { opacity: 1; }
+
+    /* ═══════════════════════════════════════
+       MODAL
+    ═══════════════════════════════════════ */
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(0,0,0,.6);
+      display: flex; align-items: center; justify-content: center; z-index: 200;
+    }
+    .modal {
+      background: var(--navy-mid); border: 1px solid rgba(201,168,64,.3);
+      border-radius: 8px; padding: 32px; min-width: 340px; max-width: 420px; width: 90%;
+      box-shadow: 0 24px 64px rgba(0,0,0,.5);
+    }
+    .modal h3 { font-family: 'Playfair Display', serif; font-size: 21px; color: var(--gold-light); margin-bottom: 22px; }
+    .modal-row { margin-bottom: 16px; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ START SCREEN ═══════════ -->
+<div id="startScreen">
+  <header class="start-header">
+    <span class="ornament">✦ ✦ ✦</span>
+    <h1>Fjordslottet Romorganisering</h1>
+    <div class="gold-rule"></div>
+    <p>Romorganisering &nbsp;·&nbsp; Bryllup</p>
+  </header>
+
+  <div class="start-grid">
+
+    <!-- Gjester -->
+    <section class="card">
+      <h2>Gjester</h2>
+
+      <div>
+        <label class="field-label">Lim inn fra Excel (ett navn per rad)</label>
+        <textarea id="pasteArea" placeholder="Kopier celler fra Excel og lim inn her…"></textarea>
+        <div class="gap">
+          <button class="btn btn-gold" style="width:100%" onclick="addFromPaste()">Legg til fra liste</button>
+        </div>
+      </div>
+
+      <div class="divider">eller</div>
+
+      <div>
+        <label class="field-label">Skriv inn enkeltvis</label>
+        <div class="row-2">
+          <input type="text" id="singleName" placeholder="Fullt navn"
+            onkeydown="if(event.key==='Enter') addSingleName()">
+          <button class="btn btn-gold" onclick="addSingleName()">Legg til</button>
+        </div>
+      </div>
+
+      <div class="gap-lg">
+        <div class="meta-text" id="guestMeta">0 gjester lagt til</div>
+        <div class="tag-list" id="guestTagList"></div>
+      </div>
+    </section>
+
+    <!-- Romkonfigurasjon -->
+    <section class="card">
+      <h2>Romkonfigurasjon</h2>
+
+      <div class="room-type-grid">
+        <div>
+          <label class="field-label">Plasser per rom</label>
+          <input type="number" id="newBeds" value="2" min="1" max="20">
+        </div>
+        <div>
+          <label class="field-label">Antall rom</label>
+          <input type="number" id="newRooms" value="1" min="1" max="200">
+        </div>
+        <button class="btn btn-gold" onclick="addRoomType()" style="margin-bottom:1px">Legg til</button>
+      </div>
+
+      <div class="gap" id="rtList"></div>
+      <div class="meta-text" id="rtMeta"></div>
+    </section>
+  </div>
+
+  <div class="start-footer">
+    <button class="btn btn-outline" onclick="document.getElementById('csvIn').click()">
+      ↑&nbsp; Importer CSV
+    </button>
+    <input type="file" id="csvIn" accept=".csv" style="display:none" onchange="importCSV(this)">
+    <button class="btn-hero" onclick="startOrganizing()">Start organisering &rarr;</button>
+  </div>
+</div>
+
+
+<!-- ═══════════ ORG SCREEN ═══════════ -->
+<div id="orgScreen">
+  <header class="org-header">
+    <span class="org-title">✦&nbsp; Fjordslottet Romorganisering</span>
+    <div class="org-actions">
+      <button class="btn btn-outline btn-sm" onclick="openPersonModal()">+ Person</button>
+      <button class="btn btn-outline btn-sm" onclick="openRoomModal()">+ Rom</button>
+      <button class="btn btn-gold btn-sm" onclick="exportCSV()">Eksporter CSV</button>
+      <button class="btn btn-outline btn-sm" onclick="goBack()">← Tilbake</button>
+    </div>
+  </header>
+
+  <div class="org-body">
+    <aside class="sidebar" id="sidebarEl">
+      <div class="sidebar-header">
+        <h3>Ufordelte gjester</h3>
+        <div class="sidebar-meta" id="sidebarMeta"></div>
+      </div>
+      <div class="sidebar-list" id="sidebarList"></div>
+    </aside>
+
+    <div class="rooms-area">
+      <div class="rooms-grid" id="roomsGrid"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════ MODAL ═══════════ -->
+<div class="modal-bg" id="modalBg" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+
+<script>
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let guests  = [];   // string[]
+let rooms   = [];   // {id,label,capacity,assignments:(string|null)[]}
+let nextId  = 1;
+let roomTypes = []; // {beds,count}  — start screen only
+
+let drag = null; // {from:'sidebar'|'bed', name, roomId?, bedIdx?}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function unassigned() {
+  const placed = new Set();
+  rooms.forEach(r => r.assignments.forEach(a => { if (a) placed.add(a); }));
+  return guests.filter(g => !placed.has(g));
+}
+
+// ══════════════════════════════════════════
+// START SCREEN — GUESTS
+// ══════════════════════════════════════════
+function parseExcel(text) {
+  return text.split('\n')
+    .map(l => l.split('\t')[0].trim())
+    .filter(n => n.length > 0);
+}
+
+function addFromPaste() {
+  const names = parseExcel(document.getElementById('pasteArea').value);
+  names.forEach(n => { if (!guests.includes(n)) guests.push(n); });
+  document.getElementById('pasteArea').value = '';
+  renderGuestTags();
+}
+
+function addSingleName() {
+  const el = document.getElementById('singleName');
+  const n = el.value.trim();
+  if (n && !guests.includes(n)) guests.push(n);
+  el.value = '';
+  el.focus();
+  renderGuestTags();
+}
+
+function removeGuest(name) {
+  guests = guests.filter(g => g !== name);
+  rooms.forEach(r => { r.assignments = r.assignments.map(a => a === name ? null : a); });
+  renderGuestTags();
+}
+
+function renderGuestTags() {
+  document.getElementById('guestMeta').textContent =
+    `${guests.length} gjest${guests.length !== 1 ? 'er' : ''} lagt til`;
+  document.getElementById('guestTagList').innerHTML = guests.map(n => `
+    <div class="guest-tag">
+      ${esc(n)}
+      <button onclick="removeGuest(${JSON.stringify(n)})" title="Fjern">×</button>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+// START SCREEN — ROOM TYPES
+// ══════════════════════════════════════════
+function addRoomType() {
+  const beds  = parseInt(document.getElementById('newBeds').value)  || 0;
+  const count = parseInt(document.getElementById('newRooms').value) || 0;
+  if (beds < 1 || count < 1) return;
+  const ex = roomTypes.find(rt => rt.beds === beds);
+  if (ex) ex.count += count; else roomTypes.push({ beds, count });
+  renderRoomTypes();
+}
+
+function removeRoomType(i) {
+  roomTypes.splice(i, 1);
+  renderRoomTypes();
+}
+
+function renderRoomTypes() {
+  const el = document.getElementById('rtList');
+  if (!roomTypes.length) {
+    el.innerHTML = '<p style="color:rgba(255,255,255,.3);font-size:12px;text-align:center;margin-top:14px">Ingen romtyper lagt til ennå</p>';
+    document.getElementById('rtMeta').textContent = '';
+    return;
+  }
+  el.innerHTML = roomTypes.map((rt, i) => `
+    <div class="rt-item">
+      <span><span class="hl">${rt.count}</span> rom &nbsp;·&nbsp; <span class="hl">${rt.beds}</span> seng${rt.beds > 1 ? 'er' : ''} per rom</span>
+      <button class="btn btn-danger btn-sm" onclick="removeRoomType(${i})">Fjern</button>
+    </div>`).join('');
+  const totRooms  = roomTypes.reduce((s, rt) => s + rt.count, 0);
+  const totPlaces = roomTypes.reduce((s, rt) => s + rt.beds * rt.count, 0);
+  document.getElementById('rtMeta').textContent = `Totalt: ${totRooms} rom · ${totPlaces} plasser`;
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function startOrganizing() {
+  if (!guests.length)    { alert('Legg til minst én gjest.'); return; }
+  if (!roomTypes.length) { alert('Legg til minst én romtype.'); return; }
+
+  rooms = [];
+  nextId = 1;
+  roomTypes.forEach(rt => {
+    for (let i = 0; i < rt.count; i++) {
+      rooms.push({ id: nextId++, label: '', capacity: rt.beds, assignments: new Array(rt.beds).fill(null) });
+    }
+  });
+  rooms.forEach((r, i) => r.label = `Rom ${i + 1}`);
+
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('orgScreen').style.display  = 'flex';
+  renderOrg();
+  initDnD();
+}
+
+function goBack() {
+  document.getElementById('orgScreen').style.display  = 'none';
+  document.getElementById('startScreen').style.display = 'flex';
+  renderGuestTags();
+  renderRoomTypes();
+}
+
+// ══════════════════════════════════════════
+// ORG SCREEN — RENDER
+// ══════════════════════════════════════════
+function renderOrg() {
+  renderSidebar();
+  renderRooms();
+}
+
+function renderSidebar() {
+  const ua = unassigned();
+  document.getElementById('sidebarMeta').textContent = `${ua.length} av ${guests.length} ikke plassert`;
+
+  const list = document.getElementById('sidebarList');
+  if (!ua.length) {
+    list.innerHTML = '<div class="sidebar-empty">Alle gjester er<br>plassert! 🎉</div>';
+    return;
+  }
+  list.innerHTML = ua.map((n, i) => `
+    <div class="guest-card" draggable="true" data-sidx="${i}" data-name="${esc(n)}">
+      <span class="drag-dots">⠿</span>${esc(n)}
+    </div>`).join('');
+
+  // Attach drag listeners
+  list.querySelectorAll('.guest-card').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      const idx = parseInt(card.dataset.sidx);
+      drag = { from: 'sidebar', name: unassigned()[idx] };
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+  });
+}
+
+function renderRooms() {
+  document.getElementById('roomsGrid').innerHTML = rooms.map(renderRoom).join('');
+
+  // Bed drop listeners
+  document.querySelectorAll('.bed-wrap').forEach(el => {
+    const roomId  = parseInt(el.dataset.room);
+    const bedIdx  = parseInt(el.dataset.bed);
+
+    el.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      el.classList.add('drop-over');
+    });
+    el.addEventListener('dragleave', () => el.classList.remove('drop-over'));
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      el.classList.remove('drop-over');
+      handleBedDrop(roomId, bedIdx);
+    });
+
+    // Occupied beds are also draggable sources
+    const occ = rooms.find(r => r.id === roomId)?.assignments[bedIdx];
+    if (occ) {
+      el.addEventListener('dragstart', e => {
+        drag = { from: 'bed', name: occ, roomId, bedIdx };
+        e.dataTransfer.effectAllowed = 'move';
+      });
+    }
+  });
+}
+
+function renderRoom(room) {
+  const filled = room.assignments.filter(Boolean).length;
+  const full   = filled === room.capacity;
+  const beds   = room.assignments.map((occ, bi) => {
+    const occupied = !!occ;
+    return `
+      <div class="bed-slot">
+        <div class="bed-wrap ${occupied ? 'occupied' : 'droppable'}"
+          data-room="${room.id}" data-bed="${bi}"
+          ${occupied ? 'draggable="true"' : ''}>
+          <div class="bed-head"></div>
+          <div class="bed-pillow"></div>
+          <div class="bed-mattress">
+            ${!occupied ? '<span class="bed-empty-hint">Ledig</span>' : ''}
+          </div>
+        </div>
+        <div class="bed-name">${occ ? esc(occ) : ''}</div>
+        ${occupied ? `<button class="bed-remove" onclick="removeBed(${room.id},${bi})" title="Fjern">×</button>` : ''}
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="room-card ${full ? 'full' : ''}" id="rc-${room.id}">
+      <div class="room-card-head">
+        <span class="room-label">${esc(room.label)}</span>
+        <span class="room-tally">${filled}/${room.capacity}${full ? '  ✓' : ''}</span>
+      </div>
+      <div class="room-beds">${beds}</div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// DRAG & DROP — SIDEBAR DROP TARGET
+// ══════════════════════════════════════════
+function initDnD() {
+  const slist = document.getElementById('sidebarList');
+  slist.addEventListener('dragover', e => {
+    e.preventDefault();
+    slist.classList.add('drop-target');
+  });
+  slist.addEventListener('dragleave', () => slist.classList.remove('drop-target'));
+  slist.addEventListener('drop', e => {
+    e.preventDefault();
+    slist.classList.remove('drop-target');
+    if (!drag || drag.from === 'sidebar') { drag = null; return; }
+    const r = rooms.find(r => r.id === drag.roomId);
+    if (r) r.assignments[drag.bedIdx] = null;
+    drag = null;
+    renderOrg();
+  });
+}
+
+function handleBedDrop(roomId, bedIdx) {
+  if (!drag) return;
+  const target = rooms.find(r => r.id === roomId);
+  const current = target.assignments[bedIdx];
+
+  if (drag.from === 'sidebar') {
+    target.assignments[bedIdx] = drag.name;
+    // current (if any) goes back to unassigned — it's already in guests[]
+  } else {
+    // bed-to-bed move/swap
+    if (drag.roomId === roomId && drag.bedIdx === bedIdx) { drag = null; return; }
+    const src = rooms.find(r => r.id === drag.roomId);
+    src.assignments[drag.bedIdx] = current;   // swap (may be null)
+    target.assignments[bedIdx]   = drag.name;
+  }
+  drag = null;
+  renderOrg();
+}
+
+function removeBed(roomId, bedIdx) {
+  const r = rooms.find(r => r.id === roomId);
+  if (r) r.assignments[bedIdx] = null;
+  renderOrg();
+}
+
+// ══════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════
+function openPersonModal() {
+  showModal(`
+    <h3>Legg til person</h3>
+    <div class="modal-row">
+      <label class="field-label">Navn</label>
+      <input type="text" id="mName" placeholder="Fullt navn" onkeydown="if(event.key==='Enter')savePersonModal()">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Avbryt</button>
+      <button class="btn btn-gold" onclick="savePersonModal()">Legg til</button>
+    </div>`);
+  setTimeout(() => document.getElementById('mName').focus(), 40);
+}
+
+function savePersonModal() {
+  const n = document.getElementById('mName').value.trim();
+  if (n && !guests.includes(n)) guests.push(n);
+  closeModal();
+  renderOrg();
+}
+
+function openRoomModal() {
+  showModal(`
+    <h3>Legg til rom</h3>
+    <div class="modal-row">
+      <label class="field-label">Antall senger per rom</label>
+      <input type="number" id="mBeds" value="2" min="1" max="20">
+    </div>
+    <div class="modal-row">
+      <label class="field-label">Antall rom</label>
+      <input type="number" id="mCount" value="1" min="1" max="100">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Avbryt</button>
+      <button class="btn btn-gold" onclick="saveRoomModal()">Legg til</button>
+    </div>`);
+}
+
+function saveRoomModal() {
+  const beds  = parseInt(document.getElementById('mBeds').value)  || 0;
+  const count = parseInt(document.getElementById('mCount').value) || 0;
+  if (beds < 1 || count < 1) return;
+  const start = rooms.length + 1;
+  for (let i = 0; i < count; i++) {
+    rooms.push({ id: nextId++, label: `Rom ${start + i}`, capacity: beds, assignments: new Array(beds).fill(null) });
+  }
+  closeModal();
+  renderOrg();
+}
+
+function showModal(html) {
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalBg').style.display  = 'flex';
+}
+function closeModal() {
+  document.getElementById('modalBg').style.display = 'none';
+}
+
+// ══════════════════════════════════════════
+// EXPORT CSV
+// ══════════════════════════════════════════
+function exportCSV() {
+  const rows = ['Navn,Rom'];
+  rooms.forEach(room => {
+    room.assignments.forEach(name => {
+      rows.push(`${csvCell(name ?? '')},${csvCell(room.label)}`);
+    });
+  });
+  unassigned().forEach(name => rows.push(`${csvCell(name)},${csvCell('Gjester')}`));
+
+  const blob = new Blob(['﻿' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: 'romorganisering_fjordslottet.csv' });
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function csvCell(s) { return `"${String(s).replace(/"/g, '""')}"`; }
+
+// ══════════════════════════════════════════
+// IMPORT CSV
+// ══════════════════════════════════════════
+function importCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    let text = e.target.result;
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+    const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
+    if (lines.length < 2) return;
+
+    const newGuests = [];
+    const roomMap   = {};   // label -> [{name|null}]
+
+    for (let i = 1; i < lines.length; i++) {
+      const parts = parseCSVLine(lines[i]);
+      const name  = (parts[0] || '').trim();
+      const room  = (parts[1] || '').trim();
+      if (!room) continue;
+
+      if (room !== 'Gjester') {
+        if (!roomMap[room]) roomMap[room] = [];
+        roomMap[room].push(name || null);
+      }
+      if (name && !newGuests.includes(name)) newGuests.push(name);
+    }
+
+    guests = newGuests;
+    const labels = Object.keys(roomMap);
+    rooms = labels.map((label, i) => ({
+      id: i + 1, label, capacity: roomMap[label].length,
+      assignments: roomMap[label]
+    }));
+    nextId = rooms.length + 1;
+
+    // Rebuild roomTypes for start screen
+    const tc = {};
+    rooms.forEach(r => { tc[r.capacity] = (tc[r.capacity] || 0) + 1; });
+    roomTypes = Object.entries(tc).map(([b, c]) => ({ beds: +b, count: c }));
+
+    renderGuestTags();
+    renderRoomTypes();
+    alert(`Importert: ${guests.length} gjester · ${rooms.length} rom`);
+    input.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseCSVLine(line) {
+  const out = []; let cur = ''; let q = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { if (q && line[i+1] === '"') { cur += '"'; i++; } else q = !q; }
+    else if (c === ',' && !q) { out.push(cur); cur = ''; }
+    else cur += c;
+  }
+  out.push(cur);
+  return out;
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+renderGuestTags();
+renderRoomTypes();
+</script>
+</body>
+</html>
