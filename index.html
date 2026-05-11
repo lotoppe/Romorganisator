@@ -547,21 +547,28 @@ function renderSidebar() {
     return;
   }
   list.innerHTML = ua.map((n, i) => `
-    <div class="guest-card" draggable="true" data-sidx="${i}" data-name="${esc(n)}">
+    <div class="guest-card" draggable="true" data-sidx="${i}">
       <span class="drag-dots">⠿</span>
       <span style="flex:1">${esc(n)}</span>
-      <button class="guest-delete" draggable="false" onclick="deleteGuest(${JSON.stringify(n)})" title="Fjern gjest">×</button>
+      <button class="guest-delete" draggable="false" title="Fjern gjest">×</button>
     </div>`).join('');
 
-  // Attach drag listeners
+  // Attach drag and delete listeners
   list.querySelectorAll('.guest-card').forEach(card => {
+    const idx  = parseInt(card.dataset.sidx);
+    const name = ua[idx];
+
     card.addEventListener('dragstart', e => {
-      const idx = parseInt(card.dataset.sidx);
-      drag = { from: 'sidebar', name: unassigned()[idx] };
+      drag = { from: 'sidebar', name };
       e.dataTransfer.effectAllowed = 'move';
       setTimeout(() => card.classList.add('dragging'), 0);
     });
     card.addEventListener('dragend', () => card.classList.remove('dragging'));
+
+    card.querySelector('.guest-delete').addEventListener('click', e => {
+      e.stopPropagation();
+      deleteGuest(name);
+    });
   });
 }
 
