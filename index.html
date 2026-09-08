@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Romorganisering – Fjordslottet Romorganisering</title>
+  <title>Fjordslottet – Gjesteorganisering</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -47,12 +47,12 @@
       display: block; font-size: 11px; font-weight: 600; letter-spacing: 2px;
       text-transform: uppercase; color: var(--gold-light); opacity: .75; margin-bottom: 7px;
     }
-    input[type=text], input[type=number], textarea {
+    input[type=text], input[type=number], textarea, select {
       width: 100%; background: var(--navy-light); border: 1px solid rgba(201,168,64,.25);
       border-radius: 4px; color: var(--cream); padding: 10px 14px;
       font-family: 'Raleway', sans-serif; font-size: 14px; outline: none; transition: border-color .2s;
     }
-    input[type=text]:focus, input[type=number]:focus, textarea:focus { border-color: var(--gold); }
+    input[type=text]:focus, input[type=number]:focus, textarea:focus, select:focus { border-color: var(--gold); }
     input[type=number] { -moz-appearance: textfield; }
     input[type=number]::-webkit-outer-spin-button,
     input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
@@ -81,11 +81,7 @@
       text-transform: uppercase; opacity: .7;
     }
 
-    .start-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
-      width: 100%; max-width: 1060px; margin-bottom: 32px;
-    }
-    @media (max-width: 760px) { .start-grid { grid-template-columns: 1fr; } }
+    .start-single { width: 100%; max-width: 620px; margin-bottom: 32px; }
 
     .card {
       background: var(--navy-mid); border: 1px solid rgba(201,168,64,.22);
@@ -107,9 +103,7 @@
     .row-2 { display: flex; gap: 10px; align-items: flex-end; }
     .row-2 > *:first-child { flex: 1; }
 
-    .room-type-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
-
-    .tag-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; max-height: 180px; overflow-y: auto; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; max-height: 220px; overflow-y: auto; }
     .guest-tag {
       background: var(--navy-light); border: 1px solid rgba(201,168,64,.22);
       border-radius: 20px; padding: 4px 10px 4px 14px; font-size: 12px; color: var(--cream);
@@ -120,13 +114,6 @@
       font-size: 15px; line-height: 1; padding: 0; transition: color .15s;
     }
     .guest-tag button:hover { color: #ef9a9a; }
-
-    .rt-item {
-      display: flex; align-items: center; justify-content: space-between;
-      background: var(--navy-light); border: 1px solid rgba(201,168,64,.15);
-      border-radius: 4px; padding: 9px 14px; margin-top: 8px; font-size: 13px;
-    }
-    .rt-item .hl { color: var(--gold-light); font-weight: 600; }
 
     .meta-text { font-size: 12px; color: var(--gold-light); opacity: .55; margin-top: 10px; }
 
@@ -152,6 +139,24 @@
     }
     .org-title { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--gold-light); letter-spacing: 1px; }
     .org-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* Hamburger menu */
+    .menu-wrap { position: relative; }
+    .menu-btn { font-size: 15px; padding: 6px 12px; }
+    .menu-dropdown {
+      display: none; position: absolute; top: calc(100% + 8px); left: 0;
+      background: var(--navy-mid); border: 1px solid rgba(201,168,64,.3);
+      border-radius: 6px; min-width: 180px; overflow: hidden; z-index: 150;
+      box-shadow: 0 12px 32px rgba(0,0,0,.45);
+    }
+    .menu-dropdown.open { display: block; }
+    .menu-item {
+      display: flex; align-items: center; gap: 10px; padding: 11px 16px;
+      cursor: pointer; font-size: 13px; color: var(--cream); transition: background .15s;
+    }
+    .menu-item:hover { background: rgba(201,168,64,.1); }
+    .menu-item.active { color: var(--gold-light); background: rgba(201,168,64,.08); }
+    .menu-item .mi-icon { font-size: 15px; }
 
     .org-body { display: flex; flex: 1; overflow: hidden; }
 
@@ -180,10 +185,11 @@
     .guest-card:hover { background: var(--cream); border-color: var(--gold); box-shadow: 0 2px 8px rgba(201,168,64,.2); }
     .guest-card:active { cursor: grabbing; }
     .guest-card.dragging { opacity: .4; }
+    .guest-card.selected { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(201,168,64,.35); }
     .drag-dots { font-size: 11px; color: rgba(0,0,0,.25); flex-shrink: 0; }
     .sidebar-empty { font-size: 12px; color: rgba(255,255,255,.3); text-align: center; margin-top: 28px; line-height: 1.7; }
 
-    /* Rooms area */
+    /* Resource area (rooms or vehicles) */
     .rooms-area { flex: 1; overflow-y: auto; padding: 24px; background: var(--navy); }
     .rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 22px; }
 
@@ -275,6 +281,56 @@
     }
     .bed-slot:hover .bed-remove { opacity: 1; }
 
+    /* Vehicle card */
+    .vehicle-card {
+      background: var(--cream); border: 2px solid rgba(201,168,64,.35);
+      border-radius: 8px; overflow: hidden; transition: border-color .3s, box-shadow .3s;
+      box-shadow: 0 4px 16px rgba(0,0,0,.2);
+    }
+    .vehicle-card.drop-over { border-color: var(--gold); }
+    .vehicle-card.full { border-color: var(--green-lite); box-shadow: 0 4px 20px rgba(82,183,136,.25); }
+
+    .vehicle-head {
+      background: var(--navy-mid); padding: 12px 16px; display: flex; align-items: flex-start; gap: 10px;
+      border-bottom: 1px solid rgba(201,168,64,.18); transition: background .3s;
+    }
+    .vehicle-card.full .vehicle-head { background: var(--green); }
+    .vehicle-icon { font-size: 20px; line-height: 1; flex-shrink: 0; }
+    .vehicle-name { font-family: 'Playfair Display', serif; font-size: 15px; color: var(--gold-light); }
+    .vehicle-card.full .vehicle-name { color: #a7f3d0; }
+    .vehicle-meta { font-size: 11px; color: rgba(255,255,255,.45); margin-top: 2px; }
+    .vehicle-card.full .vehicle-meta { color: #6ee7b7; }
+    .vehicle-delete {
+      margin-left: auto; background: none; border: none; color: #ef9a9a; cursor: pointer;
+      font-size: 18px; line-height: 1; padding: 0; opacity: 0; transition: opacity .15s; flex-shrink: 0;
+    }
+    .vehicle-card:hover .vehicle-delete { opacity: 1; }
+    .vehicle-delete:hover { color: #e53935; }
+
+    .vehicle-gauge { height: 4px; background: rgba(0,0,0,.15); }
+    .vehicle-gauge-fill { height: 100%; background: var(--gold); transition: width .2s; }
+    .vehicle-gauge-fill.full { background: var(--green); }
+
+    .vehicle-body {
+      padding: 14px 16px; display: flex; flex-wrap: wrap; gap: 8px; min-height: 56px;
+      background: var(--navy-light); align-content: flex-start;
+    }
+    .vehicle-hint { font-size: 11px; color: rgba(255,255,255,.3); text-align: center; width: 100%; padding: 14px 0; }
+
+    .chip {
+      background: var(--cream-dark); border: 1px solid rgba(201,168,64,.3);
+      border-radius: 20px; padding: 6px 8px 6px 14px; font-size: 12px; color: var(--text-dark);
+      font-weight: 500; display: inline-flex; align-items: center; gap: 8px;
+      cursor: grab; user-select: none; transition: all .15s;
+    }
+    .chip:hover { background: var(--cream); border-color: var(--gold); }
+    .chip:active { cursor: grabbing; }
+    .chip-remove {
+      background: none; border: none; color: rgba(0,0,0,.3); cursor: pointer;
+      font-size: 14px; line-height: 1; padding: 0;
+    }
+    .chip-remove:hover { color: #e53935; }
+
     /* ═══════════════════════════════════════
        MODAL
     ═══════════════════════════════════════ */
@@ -290,6 +346,14 @@
     .modal h3 { font-family: 'Playfair Display', serif; font-size: 21px; color: var(--gold-light); margin-bottom: 22px; }
     .modal-row { margin-bottom: 16px; }
     .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+      background: var(--navy-mid); border: 1px solid var(--gold); color: var(--cream);
+      padding: 10px 20px; border-radius: 6px; font-size: 13px;
+      box-shadow: 0 12px 32px rgba(0,0,0,.4); z-index: 300;
+    }
   </style>
 </head>
 <body>
@@ -298,14 +362,12 @@
 <div id="startScreen">
   <header class="start-header">
     <span class="ornament">✦ ✦ ✦</span>
-    <h1>Fjordslottet Romorganisering</h1>
+    <h1>Fjordslottet Gjesteorganisering</h1>
     <div class="gold-rule"></div>
-    <p>Romorganisering &nbsp;·&nbsp; Bryllup</p>
+    <p>Rom &nbsp;·&nbsp; Biler &nbsp;·&nbsp; Bryllup</p>
   </header>
 
-  <div class="start-grid">
-
-    <!-- Gjester -->
+  <div class="start-single">
     <section class="card">
       <h2>Gjester</h2>
 
@@ -333,33 +395,13 @@
         <div class="tag-list" id="guestTagList"></div>
       </div>
     </section>
-
-    <!-- Romkonfigurasjon -->
-    <section class="card">
-      <h2>Romkonfigurasjon</h2>
-
-      <div class="room-type-grid">
-        <div>
-          <label class="field-label">Plasser per rom</label>
-          <input type="number" id="newBeds" value="2" min="1" max="20">
-        </div>
-        <div>
-          <label class="field-label">Antall rom</label>
-          <input type="number" id="newRooms" value="1" min="1" max="200">
-        </div>
-        <button class="btn btn-gold" onclick="addRoomType()" style="margin-bottom:1px">Legg til</button>
-      </div>
-
-      <div class="gap" id="rtList"></div>
-      <div class="meta-text" id="rtMeta"></div>
-    </section>
   </div>
 
   <div class="start-footer">
     <button class="btn btn-outline" onclick="document.getElementById('csvIn').click()">
       ↑&nbsp; Importer CSV
     </button>
-    <input type="file" id="csvIn" accept=".csv" style="display:none" onchange="importCSV(this)">
+    <input type="file" id="csvIn" accept=".csv" multiple style="display:none" onchange="importCSV(this)">
     <button class="btn-hero" onclick="startOrganizing()">Start organisering &rarr;</button>
   </div>
 </div>
@@ -368,10 +410,18 @@
 <!-- ═══════════ ORG SCREEN ═══════════ -->
 <div id="orgScreen">
   <header class="org-header">
-    <span class="org-title">✦&nbsp; Fjordslottet Romorganisering</span>
+    <div class="menu-wrap">
+      <button class="btn btn-outline btn-sm menu-btn" onclick="toggleMenu()" title="Bytt visning">☰</button>
+      <div class="menu-dropdown" id="menuDropdown">
+        <div class="menu-item" data-view="rooms" onclick="setView('rooms')"><span class="mi-icon">🛏️</span> Rom</div>
+        <div class="menu-item" data-view="vehicles" onclick="setView('vehicles')"><span class="mi-icon">🚐</span> Biler</div>
+      </div>
+    </div>
+    <span class="org-title">✦&nbsp; Fjordslottet &nbsp;·&nbsp; <span id="viewLabel">Rom</span></span>
     <div class="org-actions">
       <button class="btn btn-outline btn-sm" onclick="openPersonModal()">+ Person</button>
-      <button class="btn btn-outline btn-sm" onclick="openRoomModal()">+ Rom</button>
+      <button class="btn btn-outline btn-sm" id="addRoomBtn" onclick="openRoomModal()">+ Rom</button>
+      <button class="btn btn-outline btn-sm" id="addVehicleBtn" style="display:none" onclick="openVehicleModal()">+ Kjøretøy</button>
       <button class="btn btn-gold btn-sm" onclick="exportCSV()">Eksporter CSV</button>
       <button class="btn btn-outline btn-sm" onclick="goBack()">← Tilbake</button>
     </div>
@@ -380,14 +430,14 @@
   <div class="org-body">
     <aside class="sidebar" id="sidebarEl">
       <div class="sidebar-header">
-        <h3>Ufordelte gjester</h3>
+        <h3 id="sidebarTitle">Ufordelte gjester</h3>
         <div class="sidebar-meta" id="sidebarMeta"></div>
       </div>
       <div class="sidebar-list" id="sidebarList"></div>
     </aside>
 
     <div class="rooms-area">
-      <div class="rooms-grid" id="roomsGrid"></div>
+      <div class="rooms-grid" id="resourceGrid"></div>
     </div>
   </div>
 </div>
@@ -398,18 +448,36 @@
   <div class="modal" id="modalContent"></div>
 </div>
 
+<!-- ═══════════ TOAST ═══════════ -->
+<div class="toast" id="toastEl" style="display:none"></div>
+
 
 <script>
 // ══════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════
-let guests  = [];   // string[]
-let rooms   = [];   // {id,label,capacity,assignments:(string|null)[]}
-let nextId  = 1;
-let roomTypes = []; // {beds,count}  — start screen only
+let guests   = [];   // string[] — shared between Rom and Biler
+let rooms    = [];   // {id,label,capacity,assignments:(string|null)[]}
+let vehicles = [];   // {id,type,seats,label,assigned:string[]}
+let nextId   = 1;    // room ids
+let nextVehId = 1;   // vehicle ids
 
-let drag = null; // {from:'sidebar'|'bed', name, roomId?, bedIdx?}
-let _ua  = [];   // current unassigned list, used by guest delete buttons
+let activeView = 'rooms'; // 'rooms' | 'vehicles'
+
+let dragR = null; // room drag: {from:'sidebar'|'bed', name, roomId?, bedIdx?}
+let dragV = null; // vehicle drag: {from:'sidebar'|'vehicle', name, vehicleId?}
+let _uaR  = [];    // current unassigned-for-rooms cache, used by guest delete buttons
+let _uaV  = [];    // current unassigned-for-vehicles cache
+let selectedGuestChip = null; // click-to-assign in Biler view
+
+const VEHICLE_TYPES = {
+  buss:      { label: 'Buss',      icon: '🚌', defaultSeats: 50 },
+  minibuss:  { label: 'Minibuss',  icon: '🚐', defaultSeats: 16 },
+  personbil: { label: 'Personbil', icon: '🚗', defaultSeats: 4  },
+};
+function typeKeyFromLabel(label) {
+  return Object.keys(VEHICLE_TYPES).find(k => VEHICLE_TYPES[k].label === label) || 'personbil';
+}
 
 // ══════════════════════════════════════════
 // HELPERS
@@ -420,10 +488,24 @@ function esc(s) {
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function unassigned() {
+function unassigned() { // rooms domain
   const placed = new Set();
   rooms.forEach(r => r.assignments.forEach(a => { if (a) placed.add(a); }));
   return guests.filter(g => !placed.has(g));
+}
+
+function vehicleUnassigned() { // vehicles domain
+  const placed = new Set();
+  vehicles.forEach(v => v.assigned.forEach(n => placed.add(n)));
+  return guests.filter(g => !placed.has(g));
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toastEl');
+  clearTimeout(showToast._t);
+  el.textContent = msg;
+  el.style.display = 'block';
+  showToast._t = setTimeout(() => { el.style.display = 'none'; }, 2400);
 }
 
 // ══════════════════════════════════════════
@@ -454,6 +536,7 @@ function addSingleName() {
 function removeGuest(name) {
   guests = guests.filter(g => g !== name);
   rooms.forEach(r => { r.assignments = r.assignments.map(a => a === name ? null : a); });
+  vehicles.forEach(v => { v.assigned = v.assigned.filter(n => n !== name); });
   renderGuestTags();
 }
 
@@ -468,77 +551,59 @@ function renderGuestTags() {
 }
 
 // ══════════════════════════════════════════
-// START SCREEN — ROOM TYPES
-// ══════════════════════════════════════════
-function addRoomType() {
-  const beds  = parseInt(document.getElementById('newBeds').value)  || 0;
-  const count = parseInt(document.getElementById('newRooms').value) || 0;
-  if (beds < 1 || count < 1) return;
-  const ex = roomTypes.find(rt => rt.beds === beds);
-  if (ex) ex.count += count; else roomTypes.push({ beds, count });
-  renderRoomTypes();
-}
-
-function removeRoomType(i) {
-  roomTypes.splice(i, 1);
-  renderRoomTypes();
-}
-
-function renderRoomTypes() {
-  const el = document.getElementById('rtList');
-  if (!roomTypes.length) {
-    el.innerHTML = '<p style="color:rgba(255,255,255,.3);font-size:12px;text-align:center;margin-top:14px">Ingen romtyper lagt til ennå</p>';
-    document.getElementById('rtMeta').textContent = '';
-    return;
-  }
-  el.innerHTML = roomTypes.map((rt, i) => `
-    <div class="rt-item">
-      <span><span class="hl">${rt.count}</span> rom &nbsp;·&nbsp; <span class="hl">${rt.beds}</span> seng${rt.beds > 1 ? 'er' : ''} per rom</span>
-      <button class="btn btn-danger btn-sm" onclick="removeRoomType(${i})">Fjern</button>
-    </div>`).join('');
-  const totRooms  = roomTypes.reduce((s, rt) => s + rt.count, 0);
-  const totPlaces = roomTypes.reduce((s, rt) => s + rt.beds * rt.count, 0);
-  document.getElementById('rtMeta').textContent = `Totalt: ${totRooms} rom · ${totPlaces} plasser`;
-}
-
-// ══════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════
 function startOrganizing() {
-  if (!guests.length)    { alert('Legg til minst én gjest.'); return; }
-  if (!roomTypes.length) { alert('Legg til minst én romtype.'); return; }
-
-  rooms = [];
-  nextId = 1;
-  roomTypes.forEach(rt => {
-    for (let i = 0; i < rt.count; i++) {
-      rooms.push({ id: nextId++, label: '', capacity: rt.beds, assignments: new Array(rt.beds).fill(null) });
-    }
-  });
-  rooms.forEach((r, i) => r.label = `Rom ${i + 1}`);
+  if (!guests.length) { alert('Legg til minst én gjest.'); return; }
 
   document.getElementById('startScreen').style.display = 'none';
   document.getElementById('orgScreen').style.display  = 'flex';
+  updateHeaderForView();
   renderOrg();
-  initDnD();
 }
 
 function goBack() {
   document.getElementById('orgScreen').style.display  = 'none';
   document.getElementById('startScreen').style.display = 'flex';
   renderGuestTags();
-  renderRoomTypes();
 }
 
 // ══════════════════════════════════════════
-// ORG SCREEN — RENDER
+// VIEW SWITCH (hamburger menu)
+// ══════════════════════════════════════════
+function toggleMenu() {
+  document.getElementById('menuDropdown').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.menu-wrap')) document.getElementById('menuDropdown').classList.remove('open');
+});
+
+function setView(view) {
+  activeView = view;
+  selectedGuestChip = null;
+  document.getElementById('menuDropdown').classList.remove('open');
+  updateHeaderForView();
+  renderOrg();
+}
+
+function updateHeaderForView() {
+  document.getElementById('viewLabel').textContent = activeView === 'rooms' ? 'Rom' : 'Biler';
+  document.getElementById('addRoomBtn').style.display    = activeView === 'rooms'    ? '' : 'none';
+  document.getElementById('addVehicleBtn').style.display = activeView === 'vehicles' ? '' : 'none';
+  document.querySelectorAll('.menu-item').forEach(mi => mi.classList.toggle('active', mi.dataset.view === activeView));
+}
+
+// ══════════════════════════════════════════
+// ORG SCREEN — RENDER DISPATCH
 // ══════════════════════════════════════════
 function renderOrg() {
-  renderSidebar();
-  renderRooms();
+  if (activeView === 'rooms') { renderRoomsSidebar(); renderRoomsGrid(); }
+  else                        { renderVehiclesSidebar(); renderVehiclesGrid(); }
 }
 
-function renderSidebar() {
+// ── ROOMS: SIDEBAR ──
+function renderRoomsSidebar() {
+  document.getElementById('sidebarTitle').textContent = 'Ufordelte gjester';
   const ua = unassigned();
   document.getElementById('sidebarMeta').textContent = `${ua.length} av ${guests.length} ikke plassert`;
 
@@ -547,21 +612,20 @@ function renderSidebar() {
     list.innerHTML = '<div class="sidebar-empty">Alle gjester er<br>plassert! 🎉</div>';
     return;
   }
-  _ua = ua; // store reference for onclick handlers
+  _uaR = ua;
 
   list.innerHTML = ua.map((n, i) => `
     <div class="guest-card" draggable="true" data-sidx="${i}">
       <span class="drag-dots">⠿</span>
       <span style="flex:1">${esc(n)}</span>
-      <button class="guest-delete" draggable="false" title="Fjern gjest" onclick="event.stopPropagation();deleteGuest(_ua[${i}])">×</button>
+      <button class="guest-delete" draggable="false" title="Fjern gjest" onclick="event.stopPropagation();deleteGuest(_uaR[${i}])">×</button>
     </div>`).join('');
 
-  // Attach drag listeners
   list.querySelectorAll('.guest-card').forEach(card => {
     const idx  = parseInt(card.dataset.sidx);
     const name = ua[idx];
     card.addEventListener('dragstart', e => {
-      drag = { from: 'sidebar', name };
+      dragR = { from: 'sidebar', name };
       e.dataTransfer.effectAllowed = 'move';
       setTimeout(() => card.classList.add('dragging'), 0);
     });
@@ -569,13 +633,13 @@ function renderSidebar() {
   });
 }
 
-function renderRooms() {
-  document.getElementById('roomsGrid').innerHTML = rooms.map(renderRoom).join('');
+// ── ROOMS: GRID ──
+function renderRoomsGrid() {
+  document.getElementById('resourceGrid').innerHTML = rooms.map(renderRoom).join('');
 
-  // Bed drop listeners
   document.querySelectorAll('.bed-wrap').forEach(el => {
-    const roomId  = parseInt(el.dataset.room);
-    const bedIdx  = parseInt(el.dataset.bed);
+    const roomId = parseInt(el.dataset.room);
+    const bedIdx = parseInt(el.dataset.bed);
 
     el.addEventListener('dragover', e => {
       e.preventDefault();
@@ -589,11 +653,10 @@ function renderRooms() {
       handleBedDrop(roomId, bedIdx);
     });
 
-    // Occupied beds are also draggable sources
     const occ = rooms.find(r => r.id === roomId)?.assignments[bedIdx];
     if (occ) {
       el.addEventListener('dragstart', e => {
-        drag = { from: 'bed', name: occ, roomId, bedIdx };
+        dragR = { from: 'bed', name: occ, roomId, bedIdx };
         e.dataTransfer.effectAllowed = 'move';
       });
     }
@@ -632,43 +695,20 @@ function renderRoom(room) {
     </div>`;
 }
 
-// ══════════════════════════════════════════
-// DRAG & DROP — SIDEBAR DROP TARGET
-// ══════════════════════════════════════════
-function initDnD() {
-  const slist = document.getElementById('sidebarList');
-  slist.addEventListener('dragover', e => {
-    e.preventDefault();
-    slist.classList.add('drop-target');
-  });
-  slist.addEventListener('dragleave', () => slist.classList.remove('drop-target'));
-  slist.addEventListener('drop', e => {
-    e.preventDefault();
-    slist.classList.remove('drop-target');
-    if (!drag || drag.from === 'sidebar') { drag = null; return; }
-    const r = rooms.find(r => r.id === drag.roomId);
-    if (r) r.assignments[drag.bedIdx] = null;
-    drag = null;
-    renderOrg();
-  });
-}
-
 function handleBedDrop(roomId, bedIdx) {
-  if (!drag) return;
-  const target = rooms.find(r => r.id === roomId);
+  if (!dragR) return;
+  const target  = rooms.find(r => r.id === roomId);
   const current = target.assignments[bedIdx];
 
-  if (drag.from === 'sidebar') {
-    target.assignments[bedIdx] = drag.name;
-    // current (if any) goes back to unassigned — it's already in guests[]
+  if (dragR.from === 'sidebar') {
+    target.assignments[bedIdx] = dragR.name;
   } else {
-    // bed-to-bed move/swap
-    if (drag.roomId === roomId && drag.bedIdx === bedIdx) { drag = null; return; }
-    const src = rooms.find(r => r.id === drag.roomId);
-    src.assignments[drag.bedIdx] = current;   // swap (may be null)
-    target.assignments[bedIdx]   = drag.name;
+    if (dragR.roomId === roomId && dragR.bedIdx === bedIdx) { dragR = null; return; }
+    const src = rooms.find(r => r.id === dragR.roomId);
+    src.assignments[dragR.bedIdx] = current;
+    target.assignments[bedIdx]    = dragR.name;
   }
-  drag = null;
+  dragR = null;
   renderOrg();
 }
 
@@ -683,10 +723,149 @@ function deleteRoom(roomId) {
   renderOrg();
 }
 
+// ── VEHICLES: SIDEBAR ──
+function renderVehiclesSidebar() {
+  document.getElementById('sidebarTitle').textContent = 'Ikke tildelt kjøretøy';
+  const ua = vehicleUnassigned();
+  document.getElementById('sidebarMeta').textContent = `${ua.length} av ${guests.length} ikke plassert`;
+
+  const list = document.getElementById('sidebarList');
+  if (!ua.length) {
+    list.innerHTML = '<div class="sidebar-empty">Alle gjester har<br>fått plass! 🎉</div>';
+    return;
+  }
+  _uaV = ua;
+
+  list.innerHTML = ua.map((n, i) => `
+    <div class="guest-card ${selectedGuestChip === n ? 'selected' : ''}" draggable="true" data-sidx="${i}">
+      <span class="drag-dots">⠿</span>
+      <span style="flex:1">${esc(n)}</span>
+      <button class="guest-delete" draggable="false" title="Fjern gjest" onclick="event.stopPropagation();deleteGuest(_uaV[${i}])">×</button>
+    </div>`).join('');
+
+  list.querySelectorAll('.guest-card').forEach(card => {
+    const idx  = parseInt(card.dataset.sidx);
+    const name = ua[idx];
+    card.addEventListener('dragstart', e => {
+      dragV = { from: 'sidebar', name };
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.addEventListener('click', e => {
+      if (e.target.closest('.guest-delete')) return;
+      selectedGuestChip = selectedGuestChip === name ? null : name;
+      renderVehiclesSidebar();
+    });
+  });
+}
+
+// ── VEHICLES: GRID ──
+function renderVehiclesGrid() {
+  document.getElementById('resourceGrid').innerHTML = vehicles.map(renderVehicle).join('');
+
+  document.querySelectorAll('.vehicle-card').forEach(card => {
+    const vid = parseInt(card.dataset.vehicle);
+
+    card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drop-over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('drop-over'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.classList.remove('drop-over');
+      if (dragV) { assignToVehicle(dragV.name, vid); dragV = null; renderOrg(); }
+    });
+    card.addEventListener('click', () => {
+      if (selectedGuestChip) { assignToVehicle(selectedGuestChip, vid); selectedGuestChip = null; renderOrg(); }
+    });
+  });
+
+  document.querySelectorAll('.chip[draggable]').forEach(ch => {
+    ch.addEventListener('dragstart', e => {
+      dragV = { from: 'vehicle', name: ch.dataset.name, vehicleId: parseInt(ch.dataset.veh) };
+      e.dataTransfer.effectAllowed = 'move';
+    });
+  });
+}
+
+function renderVehicle(v) {
+  const meta  = VEHICLE_TYPES[v.type];
+  const count = v.assigned.length;
+  const full  = count >= v.seats;
+  const pct   = Math.min(100, Math.round((count / v.seats) * 100));
+
+  const chips = v.assigned.map(n => `
+    <span class="chip" draggable="true" data-veh="${v.id}" data-name="${esc(n)}">
+      ${esc(n)}
+      <button class="chip-remove" onclick="event.stopPropagation();unassignFromVehicle(${JSON.stringify(n)});renderOrg();" title="Fjern">×</button>
+    </span>`).join('');
+
+  return `
+    <div class="vehicle-card ${full ? 'full' : ''}" id="vc-${v.id}" data-vehicle="${v.id}">
+      <div class="vehicle-head">
+        <span class="vehicle-icon">${meta.icon}</span>
+        <div style="flex:1">
+          <div class="vehicle-name">${esc(v.label)}</div>
+          <div class="vehicle-meta">${meta.label} &middot; ${count}/${v.seats} plasser${full ? '  ✓' : ''}</div>
+        </div>
+        <button class="vehicle-delete" onclick="event.stopPropagation();deleteVehicle(${v.id})" title="Slett kjøretøy">×</button>
+      </div>
+      <div class="vehicle-gauge"><div class="vehicle-gauge-fill ${full ? 'full' : ''}" style="width:${pct}%"></div></div>
+      <div class="vehicle-body">
+        ${chips || '<div class="vehicle-hint">Dra eller velg en gjest for å tildele</div>'}
+      </div>
+    </div>`;
+}
+
+function assignToVehicle(name, vehicleId) {
+  const v = vehicles.find(x => x.id === vehicleId);
+  if (!v) return;
+  const already = v.assigned.filter(n => n !== name).length;
+  if (already >= v.seats) { showToast(`${v.label} er full`); return; }
+  vehicles.forEach(x => { x.assigned = x.assigned.filter(n => n !== name); });
+  v.assigned.push(name);
+}
+
+function unassignFromVehicle(name) {
+  vehicles.forEach(v => { v.assigned = v.assigned.filter(n => n !== name); });
+}
+
+function deleteVehicle(id) {
+  vehicles = vehicles.filter(v => v.id !== id);
+  renderOrg();
+}
+
 function deleteGuest(name) {
   guests = guests.filter(g => g !== name);
   rooms.forEach(r => { r.assignments = r.assignments.map(a => a === name ? null : a); });
+  vehicles.forEach(v => { v.assigned = v.assigned.filter(n => n !== name); });
+  if (selectedGuestChip === name) selectedGuestChip = null;
   renderOrg();
+}
+
+// ══════════════════════════════════════════
+// DRAG & DROP — SIDEBAR DROP TARGET (unassign)
+// ══════════════════════════════════════════
+function initSidebarDnD() {
+  const slist = document.getElementById('sidebarList');
+  slist.addEventListener('dragover', e => {
+    e.preventDefault();
+    slist.classList.add('drop-target');
+  });
+  slist.addEventListener('dragleave', () => slist.classList.remove('drop-target'));
+  slist.addEventListener('drop', e => {
+    e.preventDefault();
+    slist.classList.remove('drop-target');
+    if (activeView === 'rooms' && dragR && dragR.from === 'bed') {
+      const r = rooms.find(r => r.id === dragR.roomId);
+      if (r) r.assignments[dragR.bedIdx] = null;
+      dragR = null;
+      renderOrg();
+    } else if (activeView === 'vehicles' && dragV && dragV.from === 'vehicle') {
+      unassignFromVehicle(dragV.name);
+      dragV = null;
+      renderOrg();
+    }
+  });
 }
 
 // ══════════════════════════════════════════
@@ -742,6 +921,45 @@ function saveRoomModal() {
   renderOrg();
 }
 
+function openVehicleModal() {
+  showModal(`
+    <h3>Legg til kjøretøy</h3>
+    <div class="modal-row">
+      <label class="field-label">Type</label>
+      <select id="mVehType" onchange="onModalVehTypeChange()">
+        ${Object.entries(VEHICLE_TYPES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}
+      </select>
+    </div>
+    <div class="modal-row">
+      <label class="field-label">Antall seter</label>
+      <input type="number" id="mVehSeats" value="${VEHICLE_TYPES.buss.defaultSeats}" min="1" max="200">
+    </div>
+    <div class="modal-row">
+      <label class="field-label">Navn (valgfritt)</label>
+      <input type="text" id="mVehLabel" placeholder="F.eks. Sjåfør Ola" onkeydown="if(event.key==='Enter')saveVehicleModal()">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Avbryt</button>
+      <button class="btn btn-gold" onclick="saveVehicleModal()">Legg til</button>
+    </div>`);
+}
+
+function onModalVehTypeChange() {
+  const t = document.getElementById('mVehType').value;
+  document.getElementById('mVehSeats').value = VEHICLE_TYPES[t].defaultSeats;
+}
+
+function saveVehicleModal() {
+  const type  = document.getElementById('mVehType').value;
+  const seats = parseInt(document.getElementById('mVehSeats').value) || 0;
+  const label = document.getElementById('mVehLabel').value.trim();
+  if (seats < 1) return;
+  const auto = `${VEHICLE_TYPES[type].label} ${vehicles.filter(v => v.type === type).length + 1}`;
+  vehicles.push({ id: nextVehId++, type, seats, label: label || auto, assigned: [] });
+  closeModal();
+  renderOrg();
+}
+
 function showModal(html) {
   document.getElementById('modalContent').innerHTML = html;
   document.getElementById('modalBg').style.display  = 'flex';
@@ -751,20 +969,36 @@ function closeModal() {
 }
 
 // ══════════════════════════════════════════
-// EXPORT CSV
+// EXPORT CSV — separate files for Rom and Biler
 // ══════════════════════════════════════════
 function exportCSV() {
+  exportRoomsCSV();
+  exportVehiclesCSV();
+}
+
+function exportRoomsCSV() {
   const rows = ['Navn,Rom'];
   rooms.forEach(room => {
-    room.assignments.forEach(name => {
-      rows.push(`${csvCell(name ?? '')},${csvCell(room.label)}`);
-    });
+    room.assignments.forEach(name => rows.push(`${csvCell(name ?? '')},${csvCell(room.label)}`));
   });
   unassigned().forEach(name => rows.push(`${csvCell(name)},${csvCell('Gjester')}`));
+  downloadCSV(rows, 'romorganisering_fjordslottet.csv');
+}
 
+function exportVehiclesCSV() {
+  const rows = ['Seksjon,Navn,Type,Seter,Kjoretoy'];
+  vehicles.forEach(v => {
+    rows.push(`${csvCell('Kjoretoy')},${csvCell(v.label)},${csvCell(VEHICLE_TYPES[v.type].label)},${csvCell(v.seats)},${csvCell('')}`);
+    v.assigned.forEach(name => rows.push(`${csvCell('Gjest')},${csvCell(name)},${csvCell('')},${csvCell('')},${csvCell(v.label)}`));
+  });
+  vehicleUnassigned().forEach(name => rows.push(`${csvCell('Gjest')},${csvCell(name)},${csvCell('')},${csvCell('')},${csvCell('Venteliste')}`));
+  downloadCSV(rows, 'bilorganisering_fjordslottet.csv');
+}
+
+function downloadCSV(rows, filename) {
   const blob = new Blob(['﻿' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement('a'), { href: url, download: 'romorganisering_fjordslottet.csv' });
+  const a    = Object.assign(document.createElement('a'), { href: url, download: filename });
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -772,56 +1006,93 @@ function exportCSV() {
 function csvCell(s) { return `"${String(s).replace(/"/g, '""')}"`; }
 
 // ══════════════════════════════════════════
-// IMPORT CSV
+// IMPORT CSV — one or both files at once, auto-detected
 // ══════════════════════════════════════════
 function importCSV(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    let text = e.target.result;
-    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-    const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
-    if (lines.length < 2) return;
+  const files = Array.from(input.files || []);
+  if (!files.length) return;
 
-    const newGuests = [];
-    const roomMap   = {};   // label -> [{name|null}]
+  let remaining = files.length;
+  let importedRooms = false, importedVehicles = false;
 
-    for (let i = 1; i < lines.length; i++) {
-      const parts = parseCSVLine(lines[i]);
-      const name  = (parts[0] || '').trim();
-      const room  = (parts[1] || '').trim();
-      if (!room) continue;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      let text = e.target.result;
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+      const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
 
-      if (room !== 'Gjester') {
-        if (!roomMap[room]) roomMap[room] = [];
-        roomMap[room].push(name || null);
+      if (lines.length >= 1) {
+        const header = lines[0].trim().toLowerCase();
+        if (header.startsWith('navn,rom'))   { parseRoomsCSV(lines);    importedRooms    = true; }
+        else if (header.startsWith('seksjon')) { parseVehiclesCSV(lines); importedVehicles = true; }
       }
-      if (name && !newGuests.includes(name)) newGuests.push(name);
+
+      if (--remaining === 0) finishImport(importedVehicles && !importedRooms);
+    };
+    reader.readAsText(file, 'UTF-8');
+  });
+
+  input.value = '';
+}
+
+function parseRoomsCSV(lines) {
+  const roomMap = {}; // label -> [(name|null)]
+  for (let i = 1; i < lines.length; i++) {
+    const parts = parseCSVLine(lines[i]);
+    const name  = (parts[0] || '').trim();
+    const room  = (parts[1] || '').trim();
+    if (!room) continue;
+
+    if (room !== 'Gjester') {
+      if (!roomMap[room]) roomMap[room] = [];
+      roomMap[room].push(name || null);
     }
+    if (name && !guests.includes(name)) guests.push(name);
+  }
+  Object.entries(roomMap).forEach(([label, assignments]) => {
+    rooms.push({ id: nextId++, label, capacity: assignments.length, assignments });
+  });
+}
 
-    guests = newGuests;
-    const labels = Object.keys(roomMap);
-    rooms = labels.map((label, i) => ({
-      id: i + 1, label, capacity: roomMap[label].length,
-      assignments: roomMap[label]
-    }));
-    nextId = rooms.length + 1;
+function parseVehiclesCSV(lines) {
+  const vehMap = {};        // label -> {label,type,seats}
+  const guestTargets = [];  // {name, target}
 
-    // Rebuild roomTypes for start screen
-    const tc = {};
-    rooms.forEach(r => { tc[r.capacity] = (tc[r.capacity] || 0) + 1; });
-    roomTypes = Object.entries(tc).map(([b, c]) => ({ beds: +b, count: c }));
+  for (let i = 1; i < lines.length; i++) {
+    const parts   = parseCSVLine(lines[i]);
+    const seksjon = (parts[0] || '').trim();
+    const navn    = (parts[1] || '').trim();
+    const type    = (parts[2] || '').trim();
+    const seter   = (parts[3] || '').trim();
+    const target  = (parts[4] || '').trim();
 
-    input.value = '';
+    if (seksjon.toLowerCase() === 'kjoretoy') {
+      if (navn) vehMap[navn] = { label: navn, type: typeKeyFromLabel(type), seats: parseInt(seter) || 1 };
+    } else if (seksjon.toLowerCase() === 'gjest') {
+      if (navn) {
+        if (!guests.includes(navn)) guests.push(navn);
+        guestTargets.push({ name: navn, target });
+      }
+    }
+  }
 
-    // Gå direkte til organiseringsvisningen med importert plassering
-    document.getElementById('startScreen').style.display = 'none';
-    document.getElementById('orgScreen').style.display  = 'flex';
-    renderOrg();
-    initDnD();
-  };
-  reader.readAsText(file, 'UTF-8');
+  Object.values(vehMap).forEach(v => {
+    vehicles.push({ id: nextVehId++, type: v.type, seats: v.seats, label: v.label, assigned: [] });
+  });
+  guestTargets.forEach(({ name, target }) => {
+    if (!target || target === 'Venteliste') return;
+    const v = vehicles.find(x => x.label === target);
+    if (v) v.assigned.push(name);
+  });
+}
+
+function finishImport(preferVehiclesView) {
+  activeView = preferVehiclesView ? 'vehicles' : 'rooms';
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('orgScreen').style.display  = 'flex';
+  updateHeaderForView();
+  renderOrg();
 }
 
 function parseCSVLine(line) {
@@ -840,7 +1111,7 @@ function parseCSVLine(line) {
 // INIT
 // ══════════════════════════════════════════
 renderGuestTags();
-renderRoomTypes();
+initSidebarDnD();
 </script>
 </body>
 </html>
