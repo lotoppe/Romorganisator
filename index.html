@@ -419,6 +419,8 @@
     </div>
     <span class="org-title">✦&nbsp; Fjordslottet &nbsp;·&nbsp; <span id="viewLabel">Rom</span></span>
     <div class="org-actions">
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('csvInOrg').click()">↑ Importer CSV</button>
+      <input type="file" id="csvInOrg" accept=".csv" multiple style="display:none" onchange="importCSVInOrg(this)">
       <button class="btn btn-outline btn-sm" onclick="openPersonModal()">+ Person</button>
       <button class="btn btn-outline btn-sm" id="addRoomBtn" onclick="openRoomModal()">+ Rom</button>
       <button class="btn btn-outline btn-sm" id="addVehicleBtn" style="display:none" onclick="openVehicleModal()">+ Kjøretøy</button>
@@ -1009,6 +1011,25 @@ function csvCell(s) { return `"${String(s).replace(/"/g, '""')}"`; }
 // IMPORT CSV — one or both files at once, auto-detected
 // ══════════════════════════════════════════
 function importCSV(input) {
+  readCSVFiles(input, (importedRooms, importedVehicles) => {
+    finishImport(importedVehicles && !importedRooms);
+  });
+}
+
+// Import triggered from inside the org screen (Rom or Biler view) — merges
+// into whichever view(s) match the file(s), without leaving the current screen.
+function importCSVInOrg(input) {
+  readCSVFiles(input, (importedRooms, importedVehicles) => {
+    if (!importedRooms && !importedVehicles) { showToast('Fant ingen gjenkjennbar CSV'); return; }
+    const parts = [];
+    if (importedRooms)    parts.push('rom');
+    if (importedVehicles) parts.push('biler');
+    showToast(`Importerte ${parts.join(' og ')}`);
+    renderOrg();
+  });
+}
+
+function readCSVFiles(input, onDone) {
   const files = Array.from(input.files || []);
   if (!files.length) return;
 
@@ -1028,7 +1049,7 @@ function importCSV(input) {
         else if (header.startsWith('seksjon')) { parseVehiclesCSV(lines); importedVehicles = true; }
       }
 
-      if (--remaining === 0) finishImport(importedVehicles && !importedRooms);
+      if (--remaining === 0) onDone(importedRooms, importedVehicles);
     };
     reader.readAsText(file, 'UTF-8');
   });
