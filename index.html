@@ -415,6 +415,7 @@
       <div class="menu-dropdown" id="menuDropdown">
         <div class="menu-item" data-view="rooms" onclick="setView('rooms')"><span class="mi-icon">🛏️</span> Rom</div>
         <div class="menu-item" data-view="vehicles" onclick="setView('vehicles')"><span class="mi-icon">🚐</span> Biler</div>
+        <div class="menu-item" data-view="parking" onclick="setView('parking')"><span class="mi-icon">🅿️</span> Parkering</div>
       </div>
     </div>
     <span class="org-title">✦&nbsp; Fjordslottet &nbsp;·&nbsp; <span id="viewLabel">Rom</span></span>
@@ -424,6 +425,7 @@
       <button class="btn btn-outline btn-sm" onclick="openPersonModal()">+ Person</button>
       <button class="btn btn-outline btn-sm" id="addRoomBtn" onclick="openRoomModal()">+ Rom</button>
       <button class="btn btn-outline btn-sm" id="addVehicleBtn" style="display:none" onclick="openVehicleModal()">+ Kjøretøy</button>
+      <button class="btn btn-outline btn-sm" id="addParkingBtn" style="display:none" onclick="openParkingModal()">+ Bil</button>
       <button class="btn btn-gold btn-sm" onclick="exportCSV()">Eksporter CSV</button>
       <button class="btn btn-outline btn-sm" onclick="goBack()">← Tilbake</button>
     </div>
@@ -458,19 +460,23 @@
 // ══════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════
-let guests   = [];   // string[] — shared between Rom and Biler
-let rooms    = [];   // {id,label,capacity,assignments:(string|null)[]}
-let vehicles = [];   // {id,type,seats,label,assigned:string[]}
-let nextId   = 1;    // room ids
-let nextVehId = 1;   // vehicle ids
+let guests     = [];   // string[] — shared between Rom and Biler
+let rooms      = [];   // {id,label,capacity,assignments:(string|null)[]}
+let vehicles   = [];   // {id,type,seats,label,assigned:string[]}
+let parkingCars = [];  // {id,label,spots,lot:null|'kirke'|'hotell'} — independent of guests/vehicles
+let nextId     = 1;    // room ids
+let nextVehId  = 1;    // vehicle ids
+let nextParkId = 1;    // parking car ids
 
-let activeView = 'rooms'; // 'rooms' | 'vehicles'
+let activeView = 'rooms'; // 'rooms' | 'vehicles' | 'parking'
 
 let dragR = null; // room drag: {from:'sidebar'|'bed', name, roomId?, bedIdx?}
 let dragV = null; // vehicle drag: {from:'sidebar'|'vehicle', name, vehicleId?}
+let dragP = null; // parking drag: {from:'sidebar'|'lot', carId, lot?}
 let _uaR  = [];    // current unassigned-for-rooms cache, used by guest delete buttons
 let _uaV  = [];    // current unassigned-for-vehicles cache
 let selectedGuestChip = null; // click-to-assign in Biler view
+let selectedCarId     = null; // click-to-assign in Parkering view
 
 const VEHICLE_TYPES = {
   buss:      { label: 'Buss',      icon: '🚌', defaultSeats: 50 },
@@ -480,6 +486,11 @@ const VEHICLE_TYPES = {
 function typeKeyFromLabel(label) {
   return Object.keys(VEHICLE_TYPES).find(k => VEHICLE_TYPES[k].label === label) || 'personbil';
 }
+
+const PARKING_LOTS = {
+  kirke:  { label: 'Parkering 1 · Salhus kirke' },
+  hotell: { label: 'Parkering 2 · Fjordslottet hotell' },
+};
 
 // ══════════════════════════════════════════
 // HELPERS
@@ -589,9 +600,11 @@ function setView(view) {
 }
 
 function updateHeaderForView() {
-  document.getElementById('viewLabel').textContent = activeView === 'rooms' ? 'Rom' : 'Biler';
-  document.getElementById('addRoomBtn').style.display    = activeView === 'rooms'    ? '' : 'none';
-  document.getElementById('addVehicleBtn').style.display = activeView === 'vehicles' ? '' : 'none';
+  const labels = { rooms: 'Rom', vehicles: 'Biler', parking: 'Parkering' };
+  document.getElementById('viewLabel').textContent = labels[activeView];
+  document.getElementById('addRoomBtn').style.display     = activeView === 'rooms'    ? '' : 'none';
+  document.getElementById('addVehicleBtn').style.display  = activeView === 'vehicles' ? '' : 'none';
+  document.getElementById('addParkingBtn').style.display  = activeView === 'parking'  ? '' : 'none';
   document.querySelectorAll('.menu-item').forEach(mi => mi.classList.toggle('active', mi.dataset.view === activeView));
 }
 
@@ -599,8 +612,9 @@ function updateHeaderForView() {
 // ORG SCREEN — RENDER DISPATCH
 // ══════════════════════════════════════════
 function renderOrg() {
-  if (activeView === 'rooms') { renderRoomsSidebar(); renderRoomsGrid(); }
-  else                        { renderVehiclesSidebar(); renderVehiclesGrid(); }
+  if (activeView === 'rooms')          { renderRoomsSidebar(); renderRoomsGrid(); }
+  else if (activeView === 'vehicles')  { renderVehiclesSidebar(); renderVehiclesGrid(); }
+  else                                 { renderParkingSidebar(); renderParkingGrid(); }
 }
 
 // ── ROOMS: SIDEBAR ──
@@ -844,6 +858,115 @@ function deleteGuest(name) {
   renderOrg();
 }
 
+// ── PARKING: SIDEBAR ──
+// Parkering is independent of the guest list — it's just cars sorted onto two lots.
+function parkingUnassigned() {
+  return parkingCars.filter(c => c.lot === null);
+}
+
+function renderParkingSidebar() {
+  document.getElementById('sidebarTitle').textContent = 'Ikke plassert';
+  const ua = parkingUnassigned();
+  document.getElementById('sidebarMeta').textContent = `${ua.length} av ${parkingCars.length} ikke plassert`;
+
+  const list = document.getElementById('sidebarList');
+  if (!ua.length) {
+    list.innerHTML = `<div class="sidebar-empty">${parkingCars.length ? 'Alle biler er<br>plassert! 🎉' : 'Ingen biler lagt til<br>ennå'}</div>`;
+    return;
+  }
+
+  list.innerHTML = ua.map(c => `
+    <div class="guest-card ${selectedCarId === c.id ? 'selected' : ''}" draggable="true" data-car="${c.id}">
+      <span class="drag-dots">⠿</span>
+      <span style="flex:1">${esc(c.label)} <span style="opacity:.5">· ${c.spots} plass${c.spots !== 1 ? 'er' : ''}</span></span>
+      <button class="guest-delete" draggable="false" title="Fjern bil" onclick="event.stopPropagation();deleteCar(${c.id})">×</button>
+    </div>`).join('');
+
+  list.querySelectorAll('.guest-card').forEach(card => {
+    const carId = parseInt(card.dataset.car);
+    card.addEventListener('dragstart', e => {
+      dragP = { from: 'sidebar', carId };
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.addEventListener('click', e => {
+      if (e.target.closest('.guest-delete')) return;
+      selectedCarId = selectedCarId === carId ? null : carId;
+      renderParkingSidebar();
+    });
+  });
+}
+
+// ── PARKING: GRID (two fixed lots) ──
+function renderParkingGrid() {
+  document.getElementById('resourceGrid').innerHTML =
+    Object.entries(PARKING_LOTS).map(([key, lot]) => renderLot(key, lot)).join('');
+
+  document.querySelectorAll('.vehicle-card[data-lot]').forEach(card => {
+    const lotKey = card.dataset.lot;
+
+    card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drop-over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('drop-over'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.classList.remove('drop-over');
+      if (dragP) { assignCarToLot(dragP.carId, lotKey); dragP = null; renderOrg(); }
+    });
+    card.addEventListener('click', () => {
+      if (selectedCarId) { assignCarToLot(selectedCarId, lotKey); selectedCarId = null; renderOrg(); }
+    });
+  });
+
+  document.querySelectorAll('.chip[data-car]').forEach(ch => {
+    ch.addEventListener('dragstart', e => {
+      dragP = { from: 'lot', carId: parseInt(ch.dataset.car) };
+      e.dataTransfer.effectAllowed = 'move';
+    });
+  });
+}
+
+function renderLot(key, lot) {
+  const cars   = parkingCars.filter(c => c.lot === key);
+  const spots  = cars.reduce((s, c) => s + c.spots, 0);
+
+  const chips = cars.map(c => `
+    <span class="chip" draggable="true" data-car="${c.id}">
+      ${esc(c.label)} <span style="opacity:.55">(${c.spots})</span>
+      <button class="chip-remove" onclick="event.stopPropagation();unassignCar(${c.id});renderOrg();" title="Fjern">×</button>
+    </span>`).join('');
+
+  return `
+    <div class="vehicle-card" data-lot="${key}">
+      <div class="vehicle-head">
+        <span class="vehicle-icon">🅿️</span>
+        <div style="flex:1">
+          <div class="vehicle-name">${esc(lot.label)}</div>
+          <div class="vehicle-meta">${cars.length} bil${cars.length !== 1 ? 'er' : ''} &middot; ${spots} plass${spots !== 1 ? 'er' : ''}</div>
+        </div>
+      </div>
+      <div class="vehicle-body">
+        ${chips || '<div class="vehicle-hint">Dra eller velg en bil for å plassere</div>'}
+      </div>
+    </div>`;
+}
+
+function assignCarToLot(carId, lot) {
+  const c = parkingCars.find(x => x.id === carId);
+  if (c) c.lot = lot;
+}
+
+function unassignCar(carId) {
+  const c = parkingCars.find(x => x.id === carId);
+  if (c) c.lot = null;
+}
+
+function deleteCar(carId) {
+  parkingCars = parkingCars.filter(c => c.id !== carId);
+  if (selectedCarId === carId) selectedCarId = null;
+  renderOrg();
+}
+
 // ══════════════════════════════════════════
 // DRAG & DROP — SIDEBAR DROP TARGET (unassign)
 // ══════════════════════════════════════════
@@ -865,6 +988,10 @@ function initSidebarDnD() {
     } else if (activeView === 'vehicles' && dragV && dragV.from === 'vehicle') {
       unassignFromVehicle(dragV.name);
       dragV = null;
+      renderOrg();
+    } else if (activeView === 'parking' && dragP && dragP.from === 'lot') {
+      unassignCar(dragP.carId);
+      dragP = null;
       renderOrg();
     }
   });
@@ -958,6 +1085,33 @@ function saveVehicleModal() {
   if (seats < 1) return;
   const auto = `${VEHICLE_TYPES[type].label} ${vehicles.filter(v => v.type === type).length + 1}`;
   vehicles.push({ id: nextVehId++, type, seats, label: label || auto, assigned: [] });
+  closeModal();
+  renderOrg();
+}
+
+function openParkingModal() {
+  showModal(`
+    <h3>Legg til bil</h3>
+    <div class="modal-row">
+      <label class="field-label">Navn / registreringsnr.</label>
+      <input type="text" id="mCarLabel" placeholder="F.eks. Volvo Brita" onkeydown="if(event.key==='Enter')saveParkingModal()">
+    </div>
+    <div class="modal-row">
+      <label class="field-label">Antall plasser bilen tar</label>
+      <input type="number" id="mCarSpots" value="1" min="1" max="10">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Avbryt</button>
+      <button class="btn btn-gold" onclick="saveParkingModal()">Legg til</button>
+    </div>`);
+  setTimeout(() => document.getElementById('mCarLabel').focus(), 40);
+}
+
+function saveParkingModal() {
+  const label = document.getElementById('mCarLabel').value.trim();
+  const spots = parseInt(document.getElementById('mCarSpots').value) || 1;
+  if (!label) return;
+  parkingCars.push({ id: nextParkId++, label, spots, lot: null });
   closeModal();
   renderOrg();
 }
